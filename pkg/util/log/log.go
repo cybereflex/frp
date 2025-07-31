@@ -17,6 +17,7 @@ package log
 import (
 	"bytes"
 	"os"
+	"sync"
 
 	"github.com/fatedier/golib/log"
 )
@@ -27,6 +28,11 @@ var (
 	InfoLevel  = log.InfoLevel
 	WarnLevel  = log.WarnLevel
 	ErrorLevel = log.ErrorLevel
+)
+
+var (
+	loggers = make(map[string]*log.Logger)
+	mutex   sync.RWMutex
 )
 
 var Logger *log.Logger
