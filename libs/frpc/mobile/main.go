@@ -21,7 +21,7 @@ import (
 )
 
 type CallbackBridge interface {
-	OnEvent(action string, path string)
+	OnEvent(action core.Action, path string)
 }
 
 //export InitializeBridge
@@ -35,7 +35,7 @@ func InitializeBridge(
 		to,
 		level,
 		maxDays,
-		func(action string, path string) {
+		func(action core.Action, path string) {
 			cb.OnEvent(action, path)
 		},
 	)

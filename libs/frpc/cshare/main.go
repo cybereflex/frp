@@ -45,8 +45,8 @@ func InitializeBridge(
 		C.GoString(to),
 		C.GoString(level),
 		int(maxDays),
-		func(action, path string) {
-			caction := C.CString(action)
+		func(action core.Action, path string) {
+			caction := C.CString(string(action))
 			cpath := C.CString(path)
 			defer C.free(unsafe.Pointer(caction))
 			defer C.free(unsafe.Pointer(cpath))

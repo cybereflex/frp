@@ -17,18 +17,25 @@ type instance struct {
 	CancelFunc context.CancelFunc
 }
 
+type Action string
+
+const (
+	ActionStarted Action = "started"
+	ActionStopped Action = "stopped"
+)
+
 var (
 	mutex         sync.Mutex
 	isInitialized bool
 	instances     map[string]*instance
-	callback      func(action string, path string)
+	callback      func(action Action, path string)
 )
 
 func Initialize(
 	to string,
 	level string,
 	maxDays int,
-	cb func(action string, path string),
+	cb func(action Action, path string),
 ) {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -98,7 +105,7 @@ func Start(path string) error {
 		Service:    svr,
 		CancelFunc: cancel,
 	}
-	callback("started", path)
+	callback(ActionStarted, path)
 
 	go func() {
 		if err := svr.Run(ctx); err != nil {
@@ -108,7 +115,7 @@ func Start(path string) error {
 		mutex.Lock()
 		defer mutex.Unlock()
 		delete(instances, path)
-		callback("stopped", path)
+		callback(ActionStopped, path)
 	}()
 
 	return nil
