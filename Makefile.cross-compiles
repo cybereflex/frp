@@ -3,7 +3,7 @@ export GO111MODULE=on
 LDFLAGS := -s -w
 
 darwin-archs=darwin:amd64 darwin:arm64 
-linux-archs=linux:amd64 linux:arm64 linux:arm
+linux-archs=linux:amd64 linux:arm64
 windows-archs=windows:amd64 windows:arm64 
 
 app-archs=$(darwin-archs) $(linux-archs) $(windows-archs)
@@ -42,7 +42,7 @@ app:
 	@mv ./release/frpc_windows_arm64 ./release/frpc_windows_arm64.exe
 	@mv ./release/frps_windows_arm64 ./release/frps_windows_arm64.exe
 
-darwin: 
+lib-darwin: 
 	@$(foreach n, $(darwin-archs), \
 		os=$(shell echo "$(n)" | cut -d : -f 1); \
 		arch=$(shell echo "$(n)" | cut -d : -f 2); \
@@ -56,12 +56,12 @@ darwin:
 			-trimpath \
 			-buildmode=c-shared \
 			-ldflags "$(LDFLAGS)" \
-			-o ./release/libs/frpc_$${target_suffix} \
+			-o ./release/libfrpc_$${target_suffix} \
 			./libs/frpc/cshare; \
 		echo "Build $${os}-$${arch} done"; \
 	)
 
-linux:
+lib-linux:
 	@$(foreach n, $(linux-archs), \
 		os=$(shell echo "$(n)" | cut -d : -f 1); \
 		arch=$(shell echo "$(n)" | cut -d : -f 2); \
@@ -83,12 +83,12 @@ linux:
 			-trimpath \
 			-buildmode=c-shared \
 			-ldflags "$(LDFLAGS)" \
-			-o ./release/frpc_$${target_suffix} \
+			-o ./release/libfrpc_$${target_suffix} \
 			./libs/frpc/cshare; \
 		echo "Build $${os}-$${arch} done"; \
 	)
 
-windows:
+lib-windows:
 	@$(foreach n, $(windows-archs), \
 		os=$(shell echo "$(n)" | cut -d : -f 1); \
 		arch=$(shell echo "$(n)" | cut -d : -f 2); \
@@ -108,12 +108,12 @@ windows:
 			-trimpath \
 			-buildmode=c-shared \
 			-ldflags "$(LDFLAGS)" \
-			-o ./release/frpc_$${target_suffix} \
+			-o ./release/libfrpc_$${target_suffix} \
 			./libs/frpc/cshare; \
 		echo "Build $${os}-$${arch} done"; \
 	)
 
-android:
+lib-android:
 	@$(eval ANDROID_API_LEVEL := $(if $(ANDROID_API_LEVEL),$(ANDROID_API_LEVEL),$(shell read -p "Enter Android API level (default, 30): " input; echo $${input:-30})))
 	@$(eval ANDROID_SDK_HOME := $(if $(ANDROID_SDK_HOME),$(ANDROID_SDK_HOME),$(shell read -p "Enter Android Sdk Home path (default, ${HOME}/Android/Sdk): " input; echo $${input:-${HOME}/Android/Sdk})))
 	@$(eval JAVA_PKG := $(if $(JAVA_PKG),$(JAVA_PKG),$(shell read -p "Enter Java package name (default, com.example.frpc): " input; echo $${input:-com.example.frpc})))
@@ -137,20 +137,20 @@ android:
 	
 	@echo "Build Android AAR library done";
 
-ios:
+lib-ios:
 	@$(eval IOS_VERSION := $(if $(IOS_VERSION),$(IOS_VERSION),$(shell read -p "Enter iOS version (default, 12.0): " input; echo $${input:-12.0})))
-	@$(eval BOUNDLE_ID := $(if $(BOUNDLE_ID),$(BOUNDLE_ID),$(shell read -p "Enter Bundle ID (default, com.example.frpc): " input; echo $${input:-com.example.frpc})))
+	@$(eval BUNDLE_ID := $(if $(BUNDLE_ID),$(BUNDLE_ID),$(shell read -p "Enter Bundle ID (default, com.example.frpc): " input; echo $${input:-com.example.frpc})))
 
 	@echo "========================================"
 	@echo "Build Configuration:"
 	@echo "  iOS version: $(IOS_VERSION)"
-	@echo "  Bundle ID: $(BOUNDLE_ID)"
+	@echo "  Bundle ID: $(BUNDLE_ID)"
 	@echo "========================================"
 
 	@gomobile bind \
 		-target=ios,iossimulator \
 		-iosversion $(IOS_VERSION) \
-		-bundleid $(BOUNDLE_ID) \
+		-bundleid $(BUNDLE_ID) \
 		-o ./release/frpc.xcframework \
 		./libs/frpc/mobile;
 
