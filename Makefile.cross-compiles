@@ -2,36 +2,156 @@ export PATH := $(PATH):`go env GOPATH`/bin
 export GO111MODULE=on
 LDFLAGS := -s -w
 
-os-archs=darwin:amd64 darwin:arm64 freebsd:amd64 openbsd:amd64 linux:amd64 linux:arm:7 linux:arm:5 linux:arm64 windows:amd64 windows:arm64 linux:mips64 linux:mips64le linux:mips:softfloat linux:mipsle:softfloat linux:riscv64 linux:loong64 android:arm64
+darwin-archs=darwin:amd64 darwin:arm64 
+linux-archs=linux:amd64 linux:arm64 linux:arm
+windows-archs=windows:amd64 windows:arm64 
 
-all: build
+app-archs=$(darwin-archs) $(linux-archs) $(windows-archs)
 
-build: app
+clean:
+	@rm -rf ./release/*
 
 app:
-	@$(foreach n, $(os-archs), \
+	@$(foreach n, $(app-archs), \
 		os=$(shell echo "$(n)" | cut -d : -f 1); \
 		arch=$(shell echo "$(n)" | cut -d : -f 2); \
-		extra=$(shell echo "$(n)" | cut -d : -f 3); \
-		flags=''; \
 		target_suffix=$${os}_$${arch}; \
-		if [ "$${os}" = "linux" ] && [ "$${arch}" = "arm" ] && [ "$${extra}" != "" ] ; then \
-			if [ "$${extra}" = "7" ]; then \
-				flags=GOARM=7; \
-				target_suffix=$${os}_arm_hf; \
-			elif [ "$${extra}" = "5" ]; then \
-				flags=GOARM=5; \
-				target_suffix=$${os}_arm; \
-			fi; \
-		elif [ "$${os}" = "linux" ] && ([ "$${arch}" = "mips" ] || [ "$${arch}" = "mipsle" ]) && [ "$${extra}" != "" ] ; then \
-		    flags=GOMIPS=$${extra}; \
-		fi; \
-		echo "Build $${os}-$${arch}$${extra:+ ($${extra})}..."; \
-		env CGO_ENABLED=0 GOOS=$${os} GOARCH=$${arch} $${flags} go build -trimpath -ldflags "$(LDFLAGS)" -tags frpc -o ./release/frpc_$${target_suffix} ./cmd/frpc; \
-		env CGO_ENABLED=0 GOOS=$${os} GOARCH=$${arch} $${flags} go build -trimpath -ldflags "$(LDFLAGS)" -tags frps -o ./release/frps_$${target_suffix} ./cmd/frps; \
-		echo "Build $${os}-$${arch}$${extra:+ ($${extra})} done"; \
+		echo "Build $${os}-$${arch}..."; \
+		env CGO_ENABLED=0 \
+			GOOS=$${os} \
+			GOARCH=$${arch} \
+			go build \
+			-trimpath \
+			-ldflags "$(LDFLAGS)" \
+			-tags frpc \
+			-o ./release/frpc_$${target_suffix} \
+			./cmd/frpc; \
+		env CGO_ENABLED=0 \
+			GOOS=$${os} \
+			GOARCH=$${arch} \
+			go build \
+			-trimpath \
+			-ldflags "$(LDFLAGS)" \
+			-tags frps \
+			-o ./release/frps_$${target_suffix} \
+			./cmd/frps; \
+		echo "Build $${os}-$${arch} done"; \
 	)
 	@mv ./release/frpc_windows_amd64 ./release/frpc_windows_amd64.exe
 	@mv ./release/frps_windows_amd64 ./release/frps_windows_amd64.exe
 	@mv ./release/frpc_windows_arm64 ./release/frpc_windows_arm64.exe
 	@mv ./release/frps_windows_arm64 ./release/frps_windows_arm64.exe
+
+darwin: 
+	@$(foreach n, $(darwin-archs), \
+		os=$(shell echo "$(n)" | cut -d : -f 1); \
+		arch=$(shell echo "$(n)" | cut -d : -f 2); \
+		target_suffix=$${os}_$${arch}.dylib; \
+		echo "Build $${os}-$${arch}..."; \
+		env CGO_ENABLED=1 \
+			GOOS=$${os} \
+			GOARCH=$${arch} \
+			CC=clang \
+			go build \
+			-trimpath \
+			-buildmode=c-shared \
+			-ldflags "$(LDFLAGS)" \
+			-o ./release/libs/frpc_$${target_suffix} \
+			./libs/frpc/cshare; \
+		echo "Build $${os}-$${arch} done"; \
+	)
+
+linux:
+	@$(foreach n, $(linux-archs), \
+		os=$(shell echo "$(n)" | cut -d : -f 1); \
+		arch=$(shell echo "$(n)" | cut -d : -f 2); \
+		target_suffix=$${os}_$${arch}.so; \
+		cc='gcc'; \
+		if [ "$${arch}" = "amd64" ]; then \
+			cc=x86_64-linux-gnu-gcc; \
+		elif [ "$${arch}" = "arm64" ]; then \
+			cc=aarch64-linux-gnu-gcc; \
+		elif [ "$${arch}" = "arm" ]; then \
+			cc=arm-linux-gnueabihf-gcc; \
+		fi; \
+		echo "Build $${os}-$${arch}..."; \
+		env CGO_ENABLED=1 \
+			GOOS=$${os} \
+			GOARCH=$${arch} \
+			CC=$${cc} \
+			go build \
+			-trimpath \
+			-buildmode=c-shared \
+			-ldflags "$(LDFLAGS)" \
+			-o ./release/frpc_$${target_suffix} \
+			./libs/frpc/cshare; \
+		echo "Build $${os}-$${arch} done"; \
+	)
+
+windows:
+	@$(foreach n, $(windows-archs), \
+		os=$(shell echo "$(n)" | cut -d : -f 1); \
+		arch=$(shell echo "$(n)" | cut -d : -f 2); \
+		target_suffix=$${os}_$${arch}.dll; \
+		cc='gcc'; \
+		if [ "$${arch}" = "arm64" ]; then \
+			cc=aarch64-w64-mingw32-gcc; \
+		elif [ "$${arch}" = "amd64" ]; then \
+			cc=x86_64-w64-mingw32-gcc; \
+		fi; \
+		echo "Build $${os}-$${arch}..."; \
+		env CGO_ENABLED=1 \
+			GOOS=$${os} \
+			GOARCH=$${arch} \
+			CC=$${cc} \
+			go build \
+			-trimpath \
+			-buildmode=c-shared \
+			-ldflags "$(LDFLAGS)" \
+			-o ./release/frpc_$${target_suffix} \
+			./libs/frpc/cshare; \
+		echo "Build $${os}-$${arch} done"; \
+	)
+
+android:
+	@$(eval ANDROID_API_LEVEL := $(if $(ANDROID_API_LEVEL),$(ANDROID_API_LEVEL),$(shell read -p "Enter Android API level (default, 30): " input; echo $${input:-30})))
+	@$(eval ANDROID_SDK_HOME := $(if $(ANDROID_SDK_HOME),$(ANDROID_SDK_HOME),$(shell read -p "Enter Android Sdk Home path (default, ${HOME}/Android/Sdk): " input; echo $${input:-${HOME}/Android/Sdk})))
+	@$(eval JAVA_PKG := $(if $(JAVA_PKG),$(JAVA_PKG),$(shell read -p "Enter Java package name (default, com.example.frpc): " input; echo $${input:-com.example.frpc})))
+
+	@echo "========================================"
+	@echo "Build Configuration:"
+	@echo "  Android API level: $(ANDROID_API_LEVEL)"
+	@echo "  Android SDK Home: $(ANDROID_SDK_HOME)"
+	@echo "  Java package name: $(JAVA_PKG)"
+	@echo "========================================"
+
+	@env ANDROID_HOME=$(ANDROID_SDK_HOME) \
+		gomobile bind \
+		-target=android \
+		-androidapi $(ANDROID_API_LEVEL) \
+		-javapkg $(JAVA_PKG) \
+		-trimpath \
+		-ldflags "$(LDFLAGS)" \
+		-o ./release/frpc.aar \
+		./libs/frpc/mobile;
+	
+	@echo "Build Android AAR library done";
+
+ios:
+	@$(eval IOS_VERSION := $(if $(IOS_VERSION),$(IOS_VERSION),$(shell read -p "Enter iOS version (default, 12.0): " input; echo $${input:-12.0})))
+	@$(eval BOUNDLE_ID := $(if $(BOUNDLE_ID),$(BOUNDLE_ID),$(shell read -p "Enter Bundle ID (default, com.example.frpc): " input; echo $${input:-com.example.frpc})))
+
+	@echo "========================================"
+	@echo "Build Configuration:"
+	@echo "  iOS version: $(IOS_VERSION)"
+	@echo "  Bundle ID: $(BOUNDLE_ID)"
+	@echo "========================================"
+
+	@gomobile bind \
+		-target=ios,iossimulator \
+		-iosversion $(IOS_VERSION) \
+		-bundleid $(BOUNDLE_ID) \
+		-o ./release/frpc.xcframework \
+		./libs/frpc/mobile;
+
+	@echo "Build iOS framework library done";

@@ -30,6 +30,8 @@ import "C"
 import (
 	"fmt"
 	"unsafe"
+
+	"github.com/fatedier/frp/libs/frpc/core"
 )
 
 //export InitializeBridge
@@ -39,7 +41,7 @@ func InitializeBridge(
 	maxDays C.int,
 	cb C.ClientChangedCallback,
 ) {
-	Initialize(
+	core.Initialize(
 		C.GoString(to),
 		C.GoString(level),
 		int(maxDays),
@@ -58,7 +60,7 @@ func InitializeBridge(
 //export VerifyBridge
 func VerifyBridge(path *C.char) C.int {
 
-	err := Verify(C.GoString(path))
+	err := core.Verify(C.GoString(path))
 
 	if err != nil {
 		fmt.Printf("verify frp client config has error %v \n", err)
@@ -71,7 +73,7 @@ func VerifyBridge(path *C.char) C.int {
 //export StartBridge
 func StartBridge(path *C.char) C.int {
 
-	err := Start(C.GoString(path))
+	err := core.Start(C.GoString(path))
 
 	if err != nil {
 		fmt.Printf("start frp client config has error %v \n", err)
@@ -84,7 +86,7 @@ func StartBridge(path *C.char) C.int {
 //export StopBridge
 func StopBridge(path *C.char) C.int {
 
-	err := Stop(C.GoString(path))
+	err := core.Stop(C.GoString(path))
 
 	if err != nil {
 		fmt.Printf("stop frp client config has error %v \n", err)
@@ -94,5 +96,4 @@ func StopBridge(path *C.char) C.int {
 	return 1
 }
 
-func main() {
-}
+func main() {}
