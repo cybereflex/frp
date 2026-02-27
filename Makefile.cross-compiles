@@ -138,7 +138,7 @@ lib-android:
 	@echo "Build Android AAR library done";
 
 lib-ios:
-	@$(eval IOS_VERSION := $(if $(IOS_VERSION),$(IOS_VERSION),$(shell read -p "Enter iOS version (default, 12.0): " input; echo $${input:-12.0})))
+	@$(eval IOS_VERSION := $(if $(IOS_VERSION),$(IOS_VERSION),$(shell read -p "Enter iOS version (default, 26.0): " input; echo $${input:-26.0})))
 	@$(eval BUNDLE_ID := $(if $(BUNDLE_ID),$(BUNDLE_ID),$(shell read -p "Enter Bundle ID (default, com.example.frpc): " input; echo $${input:-com.example.frpc})))
 
 	@echo "========================================"
