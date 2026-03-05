@@ -148,7 +148,7 @@ lib-ios:
 	@echo "========================================"
 
 	@gomobile bind \
-		-target=ios,iossimulator \
+		-target=ios \
 		-iosversion $(IOS_VERSION) \
 		-bundleid $(BUNDLE_ID) \
 		-o ./release/frpc.xcframework \
