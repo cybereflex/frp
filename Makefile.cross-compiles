@@ -69,11 +69,11 @@ lib-linux:
 		target_suffix=$${os}_$${arch}.so; \
 		cc='gcc'; \
 		if [ "$${arch}" = "amd64" ]; then \
-			cc=x86_64-linux-gnu-gcc; \
+			cc=x86_64-unknown-gnu-gcc; \
 		elif [ "$${arch}" = "arm64" ]; then \
-			cc=aarch64-linux-gnu-gcc; \
+			cc=aarch64-unknown-gnu-gcc; \
 		elif [ "$${arch}" = "arm" ]; then \
-			cc=arm-linux-gnueabihf-gcc; \
+			cc=arm-unknown-gnueabihf-gcc; \
 		fi; \
 		echo "Build $${os}-$${arch}..."; \
 		env CGO_ENABLED=1 \
