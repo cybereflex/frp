@@ -42,40 +42,39 @@ func InitializeBridge(
 }
 
 //export VerifyBridge
-func VerifyBridge(path string) int {
+func VerifyBridge(path string) string {
 
 	err := core.Verify(path)
 
 	if err != nil {
-		fmt.Printf("verify frp client config has error %v \n", err)
-		return 0
+		return fmt.Sprintf("Error: %v", err)
 	}
 
-	return 1
+	return "OK"
 }
 
 //export StartBridge
-func StartBridge(path string) int {
+func StartBridge(path string) bool {
 
 	err := core.Start(path)
 
 	if err != nil {
 		fmt.Printf("start frp client config has error %v \n", err)
-		return 0
+		return false
 	}
 
-	return 1
+	return true
 }
 
 //export StopBridge
-func StopBridge(path string) int {
+func StopBridge(path string) bool {
 
 	err := core.Stop(path)
 
 	if err != nil {
 		fmt.Printf("stop frp client config has error %v \n", err)
-		return 0
+		return false
 	}
 
-	return 1
+	return true
 }
