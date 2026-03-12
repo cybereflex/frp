@@ -58,16 +58,15 @@ func InitializeBridge(
 }
 
 //export VerifyBridge
-func VerifyBridge(path *C.char) C.int {
+func VerifyBridge(path *C.char) *C.char {
 
 	err := core.Verify(C.GoString(path))
 
 	if err != nil {
-		fmt.Printf("verify frp client config has error %v \n", err)
-		return 0
+		return C.CString(fmt.Sprintf("Error: %v \n", err))
 	}
 
-	return 1
+	return C.CString("OK")
 }
 
 //export StartBridge
@@ -94,6 +93,11 @@ func StopBridge(path *C.char) C.int {
 	}
 
 	return 1
+}
+
+//export FreeString
+func FreeString(str *C.char) {
+    C.free(unsafe.Pointer(str))
 }
 
 func main() {}
