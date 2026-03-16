@@ -78,3 +78,15 @@ func StopBridge(path string) bool {
 
 	return true
 }
+
+//export StopAllBridge
+func StopAllBridge() bool {
+	err := core.StopAll()
+
+	if err != nil {
+		fmt.Printf("stop all frp client has error %v \n", err)
+		return false
+	}
+
+	return true
+}

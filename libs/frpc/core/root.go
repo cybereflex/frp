@@ -137,3 +137,20 @@ func Stop(path string) error {
 
 	return nil
 }
+
+func StopAll() error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if !isInitialized {
+		return fmt.Errorf("please initialize first")
+	}
+
+	if len(instances) > 0 {
+		for _, instance  := range instances {
+			instance.CancelFunc()
+		}
+	}
+
+	return nil
+}

@@ -95,6 +95,18 @@ func StopBridge(path *C.char) C.int {
 	return 1
 }
 
+//export StopAllBridge
+func StopAllBridge() bool {
+	err := core.StopAll()
+
+	if err != nil {
+		fmt.Printf("stop all frp client has error %v \n", err)
+		return false
+	}
+
+	return true
+}
+
 //export FreeString
 func FreeString(str *C.char) {
     C.free(unsafe.Pointer(str))
